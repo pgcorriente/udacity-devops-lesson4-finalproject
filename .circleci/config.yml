@@ -7,7 +7,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: frontend-build-{{ .BuildNum }}
+          keys: frontend-build-${CIRCLE_WORKFLOW_ID}
       - run: 
           name: Front-end build
           command: |
@@ -16,7 +16,7 @@ jobs:
             npm run build
       - save_cache:
           paths: ./frontend/node_modules
-          key: frontend-build-{{ .BuildNum }}
+          key: frontend-build-${CIRCLE_WORKFLOW_ID}
 
   build-backend:
     docker:
@@ -24,7 +24,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: backend-build-{{ .BuildNum }}
+          keys: backend-build-${CIRCLE_WORKFLOW_ID}
       - run:
           name: Back-end build
           command: |
@@ -33,7 +33,7 @@ jobs:
              npm run build
       - save_cache:
           paths: ./backend/node_modules
-          key: backend-build-{{ .BuildNum }}
+          key: backend-build-${CIRCLE_WORKFLOW_ID}
 
 workflows:
   default:
