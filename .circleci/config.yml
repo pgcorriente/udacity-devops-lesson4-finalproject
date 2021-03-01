@@ -35,8 +35,46 @@ jobs:
           paths: ./backend/node_modules
           key: backend-build-${CIRCLE_WORKFLOW_ID}
 
+  test-frontend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: frontend-build-${CIRCLE_WORKFLOW_ID}
+      - run:
+          name: Front-end test
+          command: |
+            cd ./frontend &&
+            npm install &&
+            npm test
+      - save_cache:
+          paths: ./frontend/node_modules
+          key: frontend-build-${CIRCLE_WORKFLOW_ID}          
+                
+  test-backend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: backend-build-${CIRCLE_WORKFLOW_ID}
+      - run:
+          name: Back-end test
+          command: |
+            cd ./backend &&
+            npm install &&
+            npm test
+      - save_cache:
+          paths: ./backend/node_modules
+          key: backend-build-${CIRCLE_WORKFLOW_ID}      
+
 workflows:
   default:
     jobs:
       - build-frontend
       - build-backend
+      - test-frontend:
+          requires: build-frontend
+      - test-backend:
+          requires: build-backend
