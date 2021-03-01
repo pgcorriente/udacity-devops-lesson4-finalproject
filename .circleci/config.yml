@@ -121,4 +121,4 @@ workflows:
       - scan-frontend:
           requires:
             - build-frontend
-            - test frontend
+            - test-frontend
