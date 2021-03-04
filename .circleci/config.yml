@@ -103,6 +103,45 @@ jobs:
           paths: ./backend/node_modules
           key: backend-build-${CIRCLE_WORKFLOW_ID}   
 
+  deploy-infrastructure:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Ensure back-end infrastructure exists
+          command: |
+            aws cloudformation deploy \
+            --template-file .circleci/files/backend.yml \
+            --tags Project="${BACKEND_TAG}" \
+            --stack-name "Udapeople-Backend-Stack-${CIRCLE_WORKFLOW_ID:0:7}" \
+            --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" && \
+            curl -H "Content-Type: text/plain" -H "token: ${MEMSTASH_TOKEN}" \
+            --request PUT --data "$(aws ec2 describe-instances --region ${AWS_DEFAULT_REGION} \
+            --query 'Reservations[*].Instances[*].PublicDnsName' \
+            --filters "Name=tag:Project,Values=${BACKEND_TAG}
+            --output text)" https://api.memstash.io/values/udapeople-backend
+      - run:
+          name: Ensure front-end infrastructure exist
+          command: |
+            aws cloudformation deploy \
+            --template-file .circleci/files/frontend.yml \
+            --tags Project="${FRONTEND_TAG}" \
+            --stack-name "Udapeople-Frontend-Stack-${CIRCLE_WORKFLOW_ID:0:7}" \
+            --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
+      - run:
+          name: Add back-end url to ansible inventory
+          command: |
+            aws ec2 describe-instances --region ${AWS_DEFAULT_REGION} \
+            --query 'Reservations[*].Instances[*].PublicDnsName' \
+            --filters "Name=tag:Project,Values=${BACKEND_TAG}" \
+            --output text >> ~/project/.circleci/ansible/inventory.txt
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/.circleci/ansible/inventory.txt
+      # Here's where you will add some code to rollback on failure    
+
 workflows:
   default:
     jobs:
