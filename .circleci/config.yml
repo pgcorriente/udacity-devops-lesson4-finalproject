@@ -119,7 +119,7 @@ jobs:
             curl -H "Content-Type: text/plain" -H "token: ${MEMSTASH_TOKEN}" \
             --request PUT --data "$(aws ec2 describe-instances --region ${AWS_DEFAULT_REGION} \
             --query 'Reservations[*].Instances[*].PublicDnsName' \
-            --filters "Name=tag:Project,Values=${BACKEND_TAG}
+            --filters Name=tag:Project,Values=${BACKEND_TAG}
             --output text)" https://api.memstash.io/values/udapeople-backend
       - run:
           name: Ensure front-end infrastructure exist
