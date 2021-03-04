@@ -136,6 +136,9 @@ jobs:
             --query 'Reservations[*].Instances[*].PublicDnsName' \
             --filters "Name=tag:Project,Values=${BACKEND_TAG}" \
             --output text >> ~/project/.circleci/ansible/inventory.txt
+      - run:
+          name: Install tar and gzip to support workspaces
+          command: yum install -y tar && yum install -y gzip
       - persist_to_workspace:
           root: ~/
           paths:
