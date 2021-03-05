@@ -115,12 +115,19 @@ jobs:
             --template-file .circleci/files/backend.yml \
             --tags Project="${BACKEND_TAG}" \
             --stack-name "Udapeople-Backend-Stack-${CIRCLE_WORKFLOW_ID:0:7}" \
-            --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" && \
+            --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
+          # Get the backend public URL for future use
             curl -H "Content-Type: text/plain" -H "token: ${MEMSTASH_TOKEN}" \
             --request PUT --data "$(aws ec2 describe-instances --region ${AWS_DEFAULT_REGION} \
             --query 'Reservations[*].Instances[*].PublicDnsName' \
             --filters Name=tag:Project,Values=${BACKEND_TAG} \
-            --output text)" https://api.memstash.io/values/udapeople-backend
+            --output text)" https://api.memstash.io/values/udapeople-backend-url
+          # Get the backend public IP for future use, just in case
+            curl -H "Content-Type: text/plain" -H "token: ${MEMSTASH_TOKEN}" \
+            --request PUT --data "$(aws ec2 describe-instances --region ${AWS_DEFAULT_REGION} \
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --filters Name=tag:Project,Values=${BACKEND_TAG} \
+            --output text)" https://api.memstash.io/values/udapeople-backend-ip
       - run:
           name: Ensure front-end infrastructure exist
           command: |
@@ -143,7 +150,102 @@ jobs:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
-      # Here's where you will add some code to rollback on failure    
+      # Here's where you will add some code to rollback on failure
+
+  configure-infrastructure:
+    docker:
+      - image: python:3.7-alpine3.11
+    environment:
+      TYPEORM_CONNECTION: ${TYPEORM_CONNECTION}
+      TYPEORM_HOST: ${TYPEORM_HOST}
+      TYPEORM_USERNAME: ${TYPEORM_USERNAME}
+      TYPEORM_PASSWORD: ${TYPEORM_PASSWORD}
+      TYPEORM_DATABASE: ${TYPEORM_DATABASE}
+      TYPEORM_MIGRATIONS: ${TYPEORM_MIGRATIONS}
+      TYPEORM_ENTITIES: ${TYPEORM_ENTITIES}   
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints: ["6c:32:1d:8e:a6:44:6b:bf:b6:25:8b:e8:74:61:19:29"]
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Install dependencies
+          command: apk add --update ansible
+      - run:
+          name: Configure server
+          command: |
+            cd ./circleci/ansible
+            ansible-playbook -i inventory.txt ./ansible/configure-server.yml
+      # Here's where you will add some code to rollback on failure
+
+  run-migrations:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - run:
+          name: Run migrations
+          command: |
+            cd ./backend &&
+            npm install &&
+            npm run migrations > ~/migration_results.txt
+      - run:
+          name: Send migration results to memstash
+          command: |
+            if ! [ -z "$(grep -e "has been executed successfully" ~/migration_results.txt)" ]; 
+            then curl -H "Content-Type: text/plain" -H "token: ${MEMSTASH_TOKEN}" \
+            --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7} ;
+            else curl -H "Content-Type: text/plain" -H "token: ${MEMSTASH_TOKEN}" \
+            --request PUT --data "0" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7} ;
+            fi
+     # Here's where you will add some code to rollback on failure
+
+  deploy-frontend:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            sudo yum update
+            curl -sL https://rpm.nodesource.com/setup_10.x | sudo bash -
+            sudo yum install -y nodejs
+      - run:
+          name: Get backend url
+          command: |
+            export BACKEND_IP = curl -H "token: ${MEMSTASH_TOKEN}" --request GET https://api.memstash.io/values/udapeople-backend-url
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "${API_URL}"
+      - run:
+          name: Deploy frontend objects
+          command: |
+            npm install
+            npm run build
+            aws s3 cp ./dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+            aws cloudformation describe-stacks \
+            --stack-name "Udapeople-Frontend-Stack-${CIRCLE_WORKFLOW_ID:0:7}" \
+            --query 'Stacks[*].Outputs[*].OutputValue' --output text
+      # Here's where you will add some code to rollback on failure
+
+  deploy-backend:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints: ["6c:32:1d:8e:a6:44:6b:bf:b6:25:8b:e8:74:61:19:29"]
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Install dependencies
+          command: apk add --update ansible
+      - run:
+          name: Deploy backend
+          command: |
+            ansible-playbook -i inventory.txt ./ansible/deploy-backend.yml
+      # Here's where you will add some code to rollback on failure
 
 workflows:
   default:
@@ -173,3 +275,9 @@ workflows:
           filters:
             branches:
               only: master
+      - configure-infrastructure:
+          requires:
+            - deploy-infrastructure
+      - run-migrations:
+          requires:
+            - configure-infrastructure

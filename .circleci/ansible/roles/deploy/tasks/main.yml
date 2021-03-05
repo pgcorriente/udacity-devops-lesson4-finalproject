@@ -1,0 +1,4 @@
+- name: Copy files to EC2 instance
+  copy:
+    src: ./dist
+    dest: ~/
