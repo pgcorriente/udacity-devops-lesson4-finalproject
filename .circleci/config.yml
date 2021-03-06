@@ -121,11 +121,6 @@ jobs:
             --query 'Reservations[*].Instances[*].PublicDnsName' \
             --filters Name=tag:Project,Values=${BACKEND_TAG} \
             --output text)" https://api.memstash.io/values/udapeople-backend-url 
-            curl -H "Content-Type: text/plain" -H "token: ${MEMSTASH_TOKEN}" \
-            --request PUT --data "$(aws ec2 describe-instances --region ${AWS_DEFAULT_REGION} \
-            --query 'Reservations[*].Instances[*].PublicIpAddress' \
-            --filters Name=tag:Project,Values=${BACKEND_TAG} \
-            --output text)" https://api.memstash.io/values/udapeople-backend-ip
       - run:
           name: Ensure front-end infrastructure exist
           command: |
@@ -206,9 +201,9 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            sudo yum update
-            curl -sL https://rpm.nodesource.com/setup_10.x | sudo bash -
-            sudo yum install -y nodejs
+            yum update
+            curl -sL https://rpm.nodesource.com/setup_10.x | bash -
+            yum install -y nodejs
       - run:
           name: Get backend url
           command: |
@@ -241,7 +236,8 @@ jobs:
       - run:
           name: Deploy backend
           command: |
-            ansible-playbook -i inventory.txt ./ansible/deploy-backend.yml
+            cd ./.circleci/ansible
+            ansible-playbook -i inventory.txt deploy-backend.yml
       # Here's where you will add some code to rollback on failure
 
 workflows:
