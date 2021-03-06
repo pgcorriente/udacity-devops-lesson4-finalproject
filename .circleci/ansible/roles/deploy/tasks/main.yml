@@ -19,5 +19,3 @@
   unarchive:
     src: ~/dist.zip
     dest: ~/
-    remote_src: yes
-
