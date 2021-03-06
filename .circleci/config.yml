@@ -248,6 +248,7 @@ jobs:
             npm install
             npm run build
             zip -r dist.zip dist
+            mv dist.zip ~/
             cd ../.circleci/ansible
             ansible-playbook -i inventory.txt deploy-backend.yml
       # Here's where you will add some code to rollback on failure
