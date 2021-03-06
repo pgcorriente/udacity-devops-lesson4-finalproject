@@ -1,7 +1,6 @@
 - name: Copy files to EC2 instance
   shell: |
-    ls -la
-    la -la ../../
+    ls -la ../../dist
 - name: Copy files to EC2 instance
   copy:
     src: ../../dist

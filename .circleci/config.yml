@@ -216,7 +216,7 @@ jobs:
             cd frontend
             npm install
             npm run build
-            ls -la
+            ls -la dist
             aws s3 cp ./dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
             aws cloudformation describe-stacks \
             --stack-name "Udapeople-Frontend-Stack-${CIRCLE_WORKFLOW_ID:0:7}" \
