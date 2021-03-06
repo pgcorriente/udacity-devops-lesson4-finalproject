@@ -207,14 +207,16 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            export BACKEND_IP = curl -H "token: ${MEMSTASH_TOKEN}" --request GET https://api.memstash.io/values/udapeople-backend-url
+            export BACKEND_IP=$(curl -H "token: ${MEMSTASH_TOKEN}" --request GET https://api.memstash.io/values/udapeople-backend-url)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
       - run:
           name: Deploy frontend objects
           command: |
+            cd frontend
             npm install
             npm run build
+            ls -la
             aws s3 cp ./dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
             aws cloudformation describe-stacks \
             --stack-name "Udapeople-Frontend-Stack-${CIRCLE_WORKFLOW_ID:0:7}" \
@@ -232,11 +234,18 @@ jobs:
           at: ~/
       - run:
           name: Install dependencies
-          command: apk add --update ansible
+          command: |
+            apk add --update ansible
+            apk add --update nodejs
+            apk add --update npm
       - run:
           name: Deploy backend
           command: |
-            cd ./.circleci/ansible
+            cd backend
+            npm install
+            npm run build
+            ls -la        
+            cd ../.circleci/ansible
             ansible-playbook -i inventory.txt deploy-backend.yml
       # Here's where you will add some code to rollback on failure
 
