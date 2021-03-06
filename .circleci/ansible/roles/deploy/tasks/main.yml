@@ -1,4 +1,23 @@
-- name: Copy files to EC2 instance
-  copy:
-    src: ../../backend/dist
+- name: "Update apt packages"
+  become: yes
+  apt:
+    update_cache: yes
+
+- name: "Upgrade apt packages"
+  become: yes
+  apt:
+    upgrade: yes
+
+- name: "Install zip to uncompress build"
+  become: yes
+  apt:
+    name:
+      - zip
+    state: latest
+
+- name: "Copy build to EC2 instance and uncompress"
+  unarchive:
+    src: ../../backend/dist.zip
     dest: ~/
+    remote_src: yes
+

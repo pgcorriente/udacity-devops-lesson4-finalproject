@@ -239,12 +239,15 @@ jobs:
             apk add --update nodejs
             apk add --update npm
       - run:
+          name: Install zip to compress build before transferring
+          command: apk add --update zip
+      - run:
           name: Deploy backend
           command: |
             cd backend
             npm install
             npm run build
-            ls -la        
+            zip -r dist.zip dist
             cd ../.circleci/ansible
             ansible-playbook -i inventory.txt deploy-backend.yml
       # Here's where you will add some code to rollback on failure
