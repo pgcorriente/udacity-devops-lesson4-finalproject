@@ -8,14 +8,25 @@
   apt:
     upgrade: yes
 
-- name: "Install zip to uncompress build"
+- name: "Install zip to uncompress backend source"
   become: yes
   apt:
     name:
       - zip
     state: latest
 
-- name: "Copy build to EC2 instance and uncompress"
+- name: "Copy backend source to EC2 instance and uncompress"
   unarchive:
-    src: ~/dist.zip
+    src: ~/backend.zip
     dest: ~/
+
+- name: "Run backend"
+  shell: |
+    cd ~/backend
+    pm2 start npm --name backend -- start
+    pm2 ls
+
+#- name: "Copy build to EC2 instance and uncompress"
+#  unarchive:
+#    src: ~/dist.zip
+#    dest: ~/

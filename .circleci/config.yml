@@ -244,14 +244,42 @@ jobs:
       - run:
           name: Deploy backend
           command: |
-            cd backend
-            npm install
-            npm run build
-            zip -r dist.zip dist
-            mv dist.zip ~/
-            cd ../.circleci/ansible
+            zip -r ~/backend.zip ./backend/*
             ansible-playbook -i inventory.txt deploy-backend.yml
+#      - run:
+#          name: Deploy backend
+#          command: |
+#            cd backend
+#            npm install
+#            npm run build
+#            zip -r dist.zip dist
+#            mv dist.zip ~/
+#            cd ../.circleci/ansible
+#            ansible-playbook -i inventory.txt deploy-backend.yml
       # Here's where you will add some code to rollback on failure
+
+  smoke-test:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update curl
+      - run:
+          name: Get backend url
+          command: |
+            export BACKEND_URL=$(curl -H "token: ${MEMSTASH_TOKEN}" --request GET https://api.memstash.io/values/udapeople-backend-url)
+      - run:
+          name: Backend smoke test.
+          command: |
+            curl -X http://${BACKEND_URL}:3030/api/status
+      - run:
+          name: Frontend smoke test.
+          command: |
+            # your code here
+      # Here's where you will add some code to rollback on failure  
 
 workflows:
   default:
