@@ -241,22 +241,22 @@ jobs:
       - run:
           name: Install zip to compress build before transferring
           command: apk add --update zip
-      - run:
-          name: Deploy backend
-          command: |
-            zip -r ~/backend.zip ./backend/*
-            cd ./.circleci/ansible
-            ansible-playbook -i inventory.txt deploy-backend.yml
 #      - run:
 #          name: Deploy backend
 #          command: |
-#            cd backend
-#            npm install
-#            npm run build
-#            zip -r dist.zip dist
-#            mv dist.zip ~/
-#            cd ../.circleci/ansible
+#            zip -r ~/backend.zip ./backend/*
+#            cd ./.circleci/ansible
 #            ansible-playbook -i inventory.txt deploy-backend.yml
+      - run:
+          name: Deploy backend
+          command: |
+            cd backend
+            npm install
+            npm run build
+            zip -r dist.zip dist
+            mv dist.zip ~/
+            cd ../.circleci/ansible
+            ansible-playbook -i inventory.txt deploy-backend.yml
       # Here's where you will add some code to rollback on failure
 
   smoke-test:

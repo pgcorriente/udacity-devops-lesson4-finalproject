@@ -21,7 +21,7 @@ Resources:
           FromPort: 3030
           ToPort: 3030
           CidrIp: 0.0.0.0/0
-
+      
   EC2Instance:
     Type: AWS::EC2::Instance
     Properties:
@@ -29,8 +29,8 @@ Resources:
       SecurityGroups:
         - Ref: InstanceSecurityGroup
       KeyName: lesson4
-      # ImageId is Ubuntu 18.04
-      ImageId: ami-02701bcdc5509e57b 
+      # ImageId is Ubuntu 20.04
+      ImageId: ami-0ca5c3bd5a268e7db 
       Tags:
         - Key: Name
           Value: !Sub backend-${ID}
