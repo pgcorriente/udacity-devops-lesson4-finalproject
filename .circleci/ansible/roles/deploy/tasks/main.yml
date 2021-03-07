@@ -19,7 +19,7 @@
 - name: "Install package dependencies"
   become: true
   shell: |
-    cd ~/backend   
+    cd /home/ubuntu/backend   
     ls -la
     npm install
     npm audit fix --audit-level=critical --force
@@ -27,12 +27,12 @@
 - name: "Build backend"
   become: true
   shell: |
-    cd ~/backend
+    cd /home/ubuntu/backend
     npm run build
     
 - name: "Run backend"
   become: true
   shell: |
-    cd ~/backend
+    cd /home/ubuntu/backend
     pm2 start npm --name backend -- start
     pm2 ls
