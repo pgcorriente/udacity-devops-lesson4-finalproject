@@ -247,12 +247,12 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --update tar gzip ansible nodejs npm
+            apk add --update zip ansible
             pip install awscli
       - run:
           name: Deploy backend
           command: |
-            tar -C backend -czvf artifact.tar.gz .
+            zip -r ~/backend.zip ./backend/*
             cd .circleci/ansible
             ansible-playbook -i inventory.txt deploy-backend.yml
 #      - destroy-environment:
