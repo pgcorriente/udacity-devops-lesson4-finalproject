@@ -245,6 +245,7 @@ jobs:
           name: Deploy backend
           command: |
             zip -r ~/backend.zip ./backend/*
+            cd ./.circleci/ansible
             ansible-playbook -i inventory.txt deploy-backend.yml
 #      - run:
 #          name: Deploy backend
