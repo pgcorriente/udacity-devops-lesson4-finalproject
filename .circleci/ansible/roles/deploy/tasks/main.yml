@@ -1,3 +1,9 @@
+- name: "Install zip"
+  apt:
+    name: zip
+    state: latest
+    update_cache: yes
+
 - name: "Transfer backend files to EC2 and uncompress them"
   unarchive:
     src: ~/backend.zip
