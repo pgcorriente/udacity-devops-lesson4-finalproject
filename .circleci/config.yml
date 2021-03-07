@@ -238,6 +238,8 @@ jobs:
             apk add --update ansible
             apk add --update nodejs
             apk add --update npm
+            node --version
+            npm --version
       - run:
           name: Install zip to compress build before transferring
           command: apk add --update zip

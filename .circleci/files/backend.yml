@@ -30,7 +30,8 @@ Resources:
         - Ref: InstanceSecurityGroup
       KeyName: lesson4
       # ImageId is Ubuntu 20.04
-      ImageId: ami-0ca5c3bd5a268e7db 
+      # ImageId: ami-0ca5c3bd5a268e7db
+      ImageId: ami-0a91cd140a1fc148a
       Tags:
         - Key: Name
           Value: !Sub backend-${ID}
