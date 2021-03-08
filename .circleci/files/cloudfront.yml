@@ -3,7 +3,6 @@ Description: >
 
 Parameters:
   WorkflowID:
-    Default: kk1j287dhjppmz444
     Description: Unique identifier.
     Type: String
 
@@ -36,6 +35,11 @@ Resources:
 Outputs:
   WorkflowID:
     Value: !Sub ${WorkflowID}
-    Description: URL for website hosted on S3
+    Description: UniqueID of the S3 bucket
     Export:
       Name: WorkflowID
+  FrontendURL:
+    Value: !GetAtt WebpageCDN.DomainName
+    Description: URL of the website
+    Export:
+      Name: FrontendURL
