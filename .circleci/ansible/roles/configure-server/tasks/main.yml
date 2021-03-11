@@ -1,14 +1,3 @@
-- name: "Add application env variables to .bashrc"
-  shell: |
-    echo $ENVIRONMENT >> .bashrc
-    echo $TYPEORM_CONNECTION >> .bashrc
-    echo $TYPEORM_ENTITIES >> .bashrc
-    echo $TYPEORM_HOST >> .bashrc
-    echo $TYPEORM_PORT >> .bashrc
-    echo $TYPEORM_USERNAME >> .bashrc
-    echo $TYPEORM_PASSWORD >> .bashrc
-    echo $TYPEORM_DATABASE >> .bashrc
-
 - name: "Update apt packages"
   become: yes
   apt:
