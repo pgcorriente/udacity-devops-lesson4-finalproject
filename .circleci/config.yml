@@ -226,6 +226,7 @@ jobs:
       - run:
           name: Deploy backend
           command: |
+            pwd
             echo NODE_ENV=local > "backend/.env"
             echo VERSION=1 > "backend/.env"
             echo TYPEORM_CONNECTION=postgres >> "backend/.env"
@@ -238,7 +239,7 @@ jobs:
             echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> "backend/.env"
             echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
             zip -r backend.zip backend
-            ansible-playbook -i ../.circleci/ansible/inventory.txt ../.circleci/ansible/deploy-backend.yml
+            ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
       # Here's where you will add some code to rollback on failure
 
   smoke-test:
