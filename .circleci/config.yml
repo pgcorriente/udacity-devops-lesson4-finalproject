@@ -125,7 +125,7 @@ jobs:
           name: Install tar and gzip to support workspaces
           command: yum install -y tar && yum install -y gzip
       - persist_to_workspace:
-          root: ./
+          root: ~/project
           paths:
             - .circleci/ansible/inventory.txt
       # Here's where you will add some code to rollback on failure
@@ -217,7 +217,7 @@ jobs:
       - add_ssh_keys:
           fingerprints: ["6c:32:1d:8e:a6:44:6b:bf:b6:25:8b:e8:74:61:19:29"]
       - attach_workspace:
-          at: ~/
+          at: ~/project
       - run:
           name: Install dependencies
           command: |
@@ -227,6 +227,7 @@ jobs:
           name: Deploy backend
           command: |
             pwd
+            cat .circleci/ansible/inventory.txt
             echo NODE_ENV=local > "backend/.env"
             echo VERSION=1 > "backend/.env"
             echo TYPEORM_CONNECTION=postgres >> "backend/.env"
