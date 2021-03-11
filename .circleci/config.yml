@@ -256,7 +256,7 @@ jobs:
           name: Get backend url and do smoke test
           command: |
             sleep 120
-            BACKEND_URL=curl -H "token: ${MEMSTASH_TOKEN}" --request GET https://api.memstash.io/values/udapeople-backend-url
+            BACKEND_URL=$(curl -H "token: ${MEMSTASH_TOKEN}" --request GET https://api.memstash.io/values/udapeople-backend-url)
             curl "http://$BACKEND_URL:3030/api/status"
       - run:
           name: Do smoke test on frontend
