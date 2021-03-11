@@ -30,7 +30,7 @@
 
 - name: "Copy backend source and uncompress"
   unarchive:
-    src: ~/backend.zip
+    src: ~/project/backend.zip
     dest: ~/
 
 - name: "Build the backend"
