@@ -1,39 +1,58 @@
----
-
-- name: "upgrade packages."
-  become: true
+- name: "Update apt packages"
+  become: yes
   apt:
-    upgrade: "yes"
-- name: "install dependencies."
-  become: true
-  apt:
-    name: ["nodejs", "npm"]
     update_cache: yes
-- name: "install pm2"
+
+- name: "Upgrade apt packages"
+  become: yes
+  apt:
+    upgrade: yes
+
+- name: "Install dependencies"
+  become: true
+  apt:
+    name: ["nodejs", "npm", "zip"]
+    update_cache: yes
+
+- name: "Downgrade node to 13.8.0 so this POS code can run"
+  become: true
+  shell: |
+    npm install -g n
+    n 13.8.0
+
+- name: "Install pm2"
   become: true
   npm:
     name: pm2
     global: yes
     production: yes
     state: present
-- name: "copy backend file"
-  become: true
-  copy:
-    src: /root/project/backend
-    dest: /root
-    force: no
-- name: "install npm packages"
-  become: true
-  command: npm install
-  args:
-    chdir: /root/backend
-- name: "compile npm packages"
-  become: true
-  command: npm run build
-  args:
-    chdir: /root/backend
-- name: "start server"
-  become: true
-  command: pm2 start npm -- run start
-  args:
-    chdir: /root/backend/dist
+
+- name: "Copy backend source and uncompress"
+  unarchive:
+    src: ~/backend.zip
+    dest: ~/
+
+- name: "Build the backend"
+  shell: |
+    cd backend
+    npm i
+    npm run build
+
+- name: "Create env file for DB connection"
+  shell: |
+    touch .env
+    echo "NODE_ENV=local" >> .env
+    echo "VERSION=1" >> .env
+    echo "TYPEORM_CONNECTION=postgres" >> .env
+    echo "TYPEORM_MIGRATIONS_DIR=./src/migrations" >> .env
+    echo "TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts" >> .env
+    echo "TYPEORM_MIGRATIONS=./src/migrations/*.ts" >> .env
+    echo "TYPEORM_DATABASE=udapeopledb" >> .env
+    echo "TYPEORM_HOST=udapeople-deployment.cteuv6o4x2ej.us-west-2.rds.amazonaws.com" >> .env
+    echo "TYPEORM_PASSWORD=3yUiRnaD" >> .env
+    echo "TYPEORM_USERNAME=postgres" >> .env
+    echo "TYPEORM_PORT=5432" >> .env
+
+- name: "Start server"
+  shell: npm run start
