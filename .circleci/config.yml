@@ -101,12 +101,12 @@ jobs:
             ls -la
             aws cloudformation deploy \
             --template-file .circleci/files/backend.yml \
-            --tags Project="${BACKEND_TAG}" \
+            --tags Project="${BACKEND_TAG}-${CIRCLE_WORKFLOW_ID:0:7}" \
             --stack-name "Udapeople-Backend-Stack-${CIRCLE_WORKFLOW_ID:0:7}" \
             --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
             BACKEND_URL=$(aws ec2 describe-instances --region ${AWS_DEFAULT_REGION} \
             --query 'Reservations[*].Instances[*].PublicDnsName' \
-            --filters Name=tag:Project,Values=${BACKEND_TAG} \
+            --filters Name=tag:Project,Values=${BACKEND_TAG}-${CIRCLE_WORKFLOW_ID:0:7} \
             --output text)
             curl -H "Content-Type: text/plain" -H "token: ${MEMSTASH_TOKEN}" \
             --request PUT --data "$BACKEND_URL" https://api.memstash.io/values/udapeople-backend-url
