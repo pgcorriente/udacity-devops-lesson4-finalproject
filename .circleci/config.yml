@@ -109,8 +109,8 @@ jobs:
             --output text)
             curl -H "Content-Type: text/plain" -H "token: ${MEMSTASH_TOKEN}" \
             --request PUT --data "$BACKEND_URL" https://api.memstash.io/values/udapeople-backend-url
-            echo $BACKEND_URL >> ~/.circleci/ansible/inventory.txt
             ls -laR .circleci
+            echo $BACKEND_URL >> .circleci/ansible/inventory.txt
             cat .circleci/ansible/inventory.txt
       - run:
           name: Ensure front-end infrastructure exist
