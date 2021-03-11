@@ -97,6 +97,7 @@ jobs:
       - run:
           name: Ensure back-end infrastructure exists, save public url to memstash and inventory file
           command: |
+            pwd
             ls -la
             aws cloudformation deploy \
             --template-file .circleci/files/backend.yml \
@@ -124,7 +125,7 @@ jobs:
           name: Install tar and gzip to support workspaces
           command: yum install -y tar && yum install -y gzip
       - persist_to_workspace:
-          root: ~/
+          root: ./
           paths:
             - .circleci/ansible/inventory.txt
       # Here's where you will add some code to rollback on failure
