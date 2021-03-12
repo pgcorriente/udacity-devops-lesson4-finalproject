@@ -261,12 +261,11 @@ jobs:
       - run:
           name: Do smoke test on frontend
           command: |
-            RESPONSE=$(curl "http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-${AWS_DEFAULT_REGION}.amazonaws.com")
-            if RESPONSE | grep "Welcome"
+            if $(curl -s "http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-${AWS_DEFAULT_REGION}.amazonaws.com") | grep "Welcome"
             then
-            return 1
-            else
             return 0
+            else
+            return 1
             fi
       # Here's where you will add some code to rollback on failure  
 
