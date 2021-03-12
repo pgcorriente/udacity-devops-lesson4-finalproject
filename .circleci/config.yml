@@ -1,5 +1,37 @@
 version: 2.1
 
+command:
+  destroy-environment:
+    description: Delete backend and fronted stacks
+    parameters:
+      workflow_id:
+        type: string
+    steps:
+      - run:
+          name: Delete stacks
+          when: on_fail
+          command: |
+            aws s3 rm s3://udapeople-<< parameters.workflow_id >> --recursive
+            aws cloudformation delete-stack --stack-name Udapeople-Backend-Stack-<< parameters.workflow_id >>
+            aws cloudformation delete-stack --stack-name Udapeople-Frontend-Stack-<< parameters.workflow_id >>
+
+  revert-migrations:
+    description: Roll back migrations successfully applied during this workflow
+    parameters:
+      workflow_id:
+        type: string
+    steps:
+      - run:
+          name: Revert migrations
+          when: on_fail
+          command: |
+            SUCCESS=$(curl -H "token: ${MEMSTASH_TOKEN}" --request GET https://api.memstash.io/values/migration_<< parameters.workflow_id >>)
+            if [ $SUCCESS -eq 1 ] 
+            then
+            cd backend
+            npm run migrations:revert
+            fi
+
 jobs:
   build-frontend:
     docker:
@@ -128,7 +160,10 @@ jobs:
           root: ~/project
           paths:
             - .circleci/ansible/inventory.txt
-      # Here's where you will add some code to rollback on failure
+      - destroy_environments:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert_migrations:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   configure-infrastructure:
     docker:
@@ -154,7 +189,10 @@ jobs:
           name: Configure server
           command: |
             ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/configure-server.yml
-      # Here's where you will add some code to rollback on failure
+      - destroy_environments:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert_migrations:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   run-migrations:
     docker:
@@ -207,7 +245,10 @@ jobs:
             aws cloudformation describe-stacks \
             --stack-name "Udapeople-Frontend-Stack-${CIRCLE_WORKFLOW_ID:0:7}" \
             --query 'Stacks[*].Outputs[*].OutputValue' --output text
-      # Here's where you will add some code to rollback on failure
+      - destroy_environments:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert_migrations:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   deploy-backend:
     docker:
@@ -241,7 +282,10 @@ jobs:
             echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
             zip -r backend.zip backend
             ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
-      # Here's where you will add some code to rollback on failure
+      - destroy_environments:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert_migrations:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   smoke-test:
     docker:
@@ -261,14 +305,17 @@ jobs:
       - run:
           name: Do smoke test on frontend
           command: |
-            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-${AWS_DEFAULT_REGION}.amazonaws.com/#/employees"
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-${AWS_DEFAULT_REGION}.amazonaws.com"
             if curl -s ${URL} | grep "Welcome"
             then
             return 1
             else
             return 1
             fi
-      # Here's where you will add some code to rollback on failure  
+      - destroy_environments:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert_migrations:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
 workflows:
   default:
