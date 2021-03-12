@@ -176,7 +176,9 @@ jobs:
           at: ~/
       - run:
           name: Install dependencies
-          command: apk add --update ansible
+          command: |
+            apk add --update ansible
+            pip install awscli
       - run:
           name: Configure server
           command: |
@@ -259,6 +261,7 @@ jobs:
           command: |
             apk add --update ansible
             apk add --update zip
+            pip install awscli
       - run:
           name: Deploy backend
           command: |
@@ -291,6 +294,7 @@ jobs:
           name: Install dependencies
           command: |
             apk add --update curl
+            pip install awscli
       - run:
           name: Get backend url and do smoke test
           command: |
