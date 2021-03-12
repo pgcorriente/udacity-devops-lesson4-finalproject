@@ -1,7 +1,7 @@
 version: 2.1
 
 command:
-  destroy-environment:
+  destroy-environments:
     description: Delete backend and fronted stacks
     parameters:
       workflow_id:
@@ -160,22 +160,14 @@ jobs:
           root: ~/project
           paths:
             - .circleci/ansible/inventory.txt
-      - destroy_environments:
+      - destroy-environments:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-      - revert_migrations:
+      - revert-migrations:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   configure-infrastructure:
     docker:
       - image: python:3.7-alpine3.11
-#    environment:
-#      TYPEORM_CONNECTION: ${TYPEORM_CONNECTION}
-#      TYPEORM_HOST: ${TYPEORM_HOST}
-#      TYPEORM_USERNAME: ${TYPEORM_USERNAME}
-#      TYPEORM_PASSWORD: ${TYPEORM_PASSWORD}
-#      TYPEORM_DATABASE: ${TYPEORM_DATABASE}
-#      TYPEORM_MIGRATIONS: ${TYPEORM_MIGRATIONS}
-#      TYPEORM_ENTITIES: ${TYPEORM_ENTITIES}   
     steps:
       - checkout
       - add_ssh_keys:
@@ -189,9 +181,9 @@ jobs:
           name: Configure server
           command: |
             ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/configure-server.yml
-      - destroy_environments:
+      - destroy-environments:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-      - revert_migrations:
+      - revert-migrations:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   run-migrations:
@@ -213,7 +205,10 @@ jobs:
             then curl -H "Content-Type: text/plain" -H "token: ${MEMSTASH_TOKEN}" --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
             else curl -H "Content-Type: text/plain" -H "token: ${MEMSTASH_TOKEN}" --request PUT --data "0" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
             fi
-     # Here's where you will add some code to rollback on failure
+      - destroy-environments:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert-migrations:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   deploy-frontend:
     docker:
@@ -245,9 +240,9 @@ jobs:
             aws cloudformation describe-stacks \
             --stack-name "Udapeople-Frontend-Stack-${CIRCLE_WORKFLOW_ID:0:7}" \
             --query 'Stacks[*].Outputs[*].OutputValue' --output text
-      - destroy_environments:
+      - destroy-environments:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-      - revert_migrations:
+      - revert-migrations:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   deploy-backend:
@@ -282,9 +277,9 @@ jobs:
             echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> "backend/.env"
             zip -r backend.zip backend
             ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
-      - destroy_environments:
+      - destroy-environments:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-      - revert_migrations:
+      - revert-migrations:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   smoke-test:
@@ -312,9 +307,9 @@ jobs:
             else
             return 1
             fi
-      - destroy_environments:
+      - destroy-environments:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-      - revert_migrations:
+      - revert-migrations:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
 workflows:
