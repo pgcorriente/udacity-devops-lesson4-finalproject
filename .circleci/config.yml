@@ -298,7 +298,7 @@ jobs:
       - run:
           name: Get backend url and do smoke test
           command: |
-            sleep 120
+            sleep 60
             BACKEND_URL=$(curl -H "token: ${MEMSTASH_TOKEN}" --request GET https://api.memstash.io/values/udapeople-backend-url)
             curl "http://$BACKEND_URL:3030/api/status"
       - run:
@@ -307,10 +307,28 @@ jobs:
             URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-${AWS_DEFAULT_REGION}.amazonaws.com"
             if curl -s ${URL} | grep "Welcome"
             then
-            return 1
+            return 0
             else
             return 1
             fi
+      - destroy-environments:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert-migrations:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+
+  cloudfront-update:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Update cloudfront distribution
+          command: |
+            aws cloudformation deploy \
+            --template-file .circleci/files/cloudfront.yml \
+            --stack-name udapeople \
+            --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
+            --tags project=Udapeople-Cloudfront
       - destroy-environments:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
       - revert-migrations:
