@@ -157,7 +157,7 @@ jobs:
           name: Install tar and gzip to support workspaces
           command: yum install -y tar && yum install -y gzip
       - persist_to_workspace:
-          root: ~/project
+          root: ./
           paths:
             - .circleci/ansible/inventory.txt
       - destroy-environments:
@@ -173,7 +173,7 @@ jobs:
       - add_ssh_keys:
           fingerprints: ["6c:32:1d:8e:a6:44:6b:bf:b6:25:8b:e8:74:61:19:29"]
       - attach_workspace:
-          at: ~/
+          at: ./
       - run:
           name: Install dependencies
           command: |
@@ -182,6 +182,8 @@ jobs:
       - run:
           name: Configure server
           command: |
+            ls -laR
+            cat .circleci/ansible/inventory.txt
             ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/configure-server.yml
       - destroy-environments:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
