@@ -129,8 +129,6 @@ jobs:
       - run:
           name: Ensure back-end infrastructure exists, save public url to memstash and inventory file
           command: |
-            pwd
-            ls -la
             aws cloudformation deploy \
             --template-file .circleci/files/backend.yml \
             --tags Project="${BACKEND_TAG}-${CIRCLE_WORKFLOW_ID:0:7}" \
@@ -142,9 +140,7 @@ jobs:
             --output text)
             curl -H "Content-Type: text/plain" -H "token: ${MEMSTASH_TOKEN}" \
             --request PUT --data "$BACKEND_URL" https://api.memstash.io/values/udapeople-backend-url
-            ls -laR .circleci
             echo $BACKEND_URL >> .circleci/ansible/inventory.txt
-            cat .circleci/ansible/inventory.txt
       - run:
           name: Ensure front-end infrastructure exist
           command: |
@@ -239,7 +235,6 @@ jobs:
             cd frontend
             npm i
             npm run build
-            ls -la
             aws s3 cp ./dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
             aws cloudformation describe-stacks \
             --stack-name "Udapeople-Frontend-Stack-${CIRCLE_WORKFLOW_ID:0:7}" \
@@ -267,7 +262,6 @@ jobs:
       - run:
           name: Deploy backend
           command: |
-            pwd
             cat .circleci/ansible/inventory.txt
             echo NODE_ENV=local > "backend/.env"
             echo VERSION=1 > "backend/.env"
