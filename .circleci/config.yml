@@ -94,7 +94,7 @@ jobs:
             cd backend
             npm i
             npm run test
-            
+
   scan-frontend:
     docker:
       - image: circleci/node:13.8.0
@@ -106,7 +106,7 @@ jobs:
           name: Frontend scan
           command: |
             cd frontend
-            npm audit --audit-level=critical
+            npm audit fix --audit-level=critical --force
 
   scan-backend:
     docker:
