@@ -136,13 +136,13 @@ jobs:
             --tags Project="${BACKEND_TAG}-${CIRCLE_WORKFLOW_ID:0:7}" \
             --stack-name "Udapeople-Backend-Stack-${CIRCLE_WORKFLOW_ID:0:7}" \
             --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
-            BACKEND_URL=$(aws ec2 describe-instances --region ${AWS_DEFAULT_REGION} \
-            --query 'Reservations[*].Instances[*].PublicDnsName' \
+            BACKEND_IP=$(aws ec2 describe-instances --region ${AWS_DEFAULT_REGION} \
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --filters Name=tag:Project,Values=${BACKEND_TAG}-${CIRCLE_WORKFLOW_ID:0:7} \
             --output text)
             curl -H "Content-Type: text/plain" -H "token: ${MEMSTASH_TOKEN}" \
-            --request PUT --data "$BACKEND_URL" https://api.memstash.io/values/udapeople-backend-url
-            echo $BACKEND_URL >> .circleci/ansible/inventory.txt
+            --request PUT --data "$BACKEND_IP" https://api.memstash.io/values/udapeople-backend-ip
+            echo $BACKEND_IP >> .circleci/ansible/inventory.txt
       - run:
           name: Ensure front-end infrastructure exist
           command: |
@@ -239,15 +239,11 @@ jobs:
             curl -sL https://rpm.nodesource.com/setup_10.x | bash -
             yum install -y nodejs
       - run:
-          name: Get backend url
-          command: |
-            BACKEND_URL=$(curl -H "token: ${MEMSTASH_TOKEN}" --request GET https://api.memstash.io/values/udapeople-backend-url)
-            echo $BACKEND_URL
-            API_URL="http://${BACKEND_URL}:3030"
-            echo $API_URL
-      - run:
           name: Deploy frontend objects
           command: |
+            BACKEND_IP=$(curl -H "token: ${MEMSTASH_TOKEN}" --request GET https://api.memstash.io/values/udapeople-backend-ip)
+            echo $BACKEND_IP
+            API_URL="http://${BACKEND_IP}:3030"
             echo $API_URL
             cd frontend
             npm i
@@ -302,8 +298,8 @@ jobs:
           name: Get backend url and do smoke test
           command: |
             sleep 60
-            BACKEND_URL=$(curl -H "token: ${MEMSTASH_TOKEN}" --request GET https://api.memstash.io/values/udapeople-backend-url)
-            curl "http://$BACKEND_URL:3030/api/status"
+            BACKEND_IP=$(curl -H "token: ${MEMSTASH_TOKEN}" --request GET https://api.memstash.io/values/udapeople-backend-ip)
+            curl "http://$BACKEND_IP:3030/api/status"
       - run:
           name: Do smoke test on frontend
           command: |
