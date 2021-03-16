@@ -42,4 +42,4 @@
 - name: "Start server"
   shell: |
     cd backend
-    pm2 start npm -- run start:prod
+    pm2 start npm -- run start
