@@ -243,15 +243,15 @@ jobs:
           command: |
             BACKEND_IP=$(curl -H "token: ${MEMSTASH_TOKEN}" --request GET https://api.memstash.io/values/udapeople-backend-ip)
             echo $BACKEND_IP
-            API_URL="http://${BACKEND_IP}:3030"
+            export API_URL="http://${BACKEND_IP}:3030"
             echo $API_URL
             cd frontend
+            echo "API_URL=$API_URL" >> .env
             npm i
+            npm update
+            npm audit fix --audit-level=critical --force
             npm run build
             aws s3 cp ./dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
-            aws cloudformation describe-stacks \
-            --stack-name "Udapeople-Frontend-Stack-${CIRCLE_WORKFLOW_ID:0:7}" \
-            --query 'Stacks[*].Outputs[*].OutputValue' --output text
       - destroy-environments:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
       - revert-migrations:
